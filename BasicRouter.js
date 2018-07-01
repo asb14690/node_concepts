@@ -8,10 +8,16 @@ let routes = {
         '/': (req,res) => {
             res.writeHead(200,{'content-type':'text/html'});
             res.write('<h1>Hello Routes</h1>')
+        },
+        '/api/getinfo':(req,res) => {
+            res.writeHead(200,{'content-type':'application/json'});
+            res.end("{'name':'Ankur Sharma','Age':14}");
         }
     },
     'POST':{
+        '/api/login':(req,res) => {
 
+        }
     },
     'NA':(req,res) => {
         res.writeHead(404,{'content-type':'text/html'});
