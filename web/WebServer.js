@@ -26,6 +26,20 @@ function fileAccess(filepath){
   })
 }
 
+function streamFile(filepath) {
+  return new Promise((resolve, reject) => {
+    let fileStream = fs.createReadStream(filepath);
+
+    fileStream.on('open', () => {
+      resolve(fileStream);
+    });
+    fileStream.on('error', () => {
+      reject(error);
+    })
+
+  })
+}
+
 function fileReader(filepath){
   return new Promise((resolve,resject) => {
       fs.readFile(filepath, (error,content) => {
@@ -44,10 +58,11 @@ function webServer(req,res){
     let contentType = mime[path.extname(filepath)];
 
     fileAccess(filepath)
-      .then(fileReader)
-      .then(content => {
+      .then(streamFile)
+      .then(fileStream => {
         res.writeHead(200, { 'content-type' : contentType});
-        res.end(content,'utf-8');
+        //res.end(content,'utf-8');
+        fileStream.pipe(res);
       })
       .catch(error => {
         res.writeHead(404);
