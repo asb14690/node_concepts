@@ -14,40 +14,47 @@ let mime = {
     '.png':'image/png'
 }
 
-function webServer(req,res){
-    let baseURI = url.parse(req.url);
-
-    let filepath = __dirname + (baseURI.pathname == '/' ? '/index.htm' : baseURI.pathname);
-
-    // check if requested file is accessible
+function fileAccess(filepath){
+  return new Promise((resolve,reject) => {
     fs.access(filepath, fs.F_OK, error => {
-        if(!error){
-            fs.readFile(filepath, (error,content) => {
-                if(!error){
-                    console.log(filepath);
-                    let contentType = mime[path.extname(filepath)];
-                    res.writeHead(200, { 'content-type' : contentType});
-                    res.end(content,'utf-8');
-                }else{
-                    console.log('er');
-                    // server a 500
-                    res.writeHead(404,{'content-type':'text/html'});
-                    res.write('<h1 style="text-align: center">Server cannot read requested content</h1>\n<p style="text-align: center">Node.js server 8.11.3</p>');
-
-                }
-            })
-
-        }else {
-            // server 404
-            res.writeHead(404,{'content-type':'text/html'});
-            res.write('<h1 style="text-align: center">402 Not Found</h1>\n<p style="text-align: center">Node.js server 8.11.3</p>');
-
-        }
-    });
-
+      if(!error){
+        resolve(filepath);
+      } else {
+        reject(error);
+      }
+    })
+  })
 }
 
-http
-    .createServer(webServer).listen(3000, () => {
+function fileReader(filepath){
+  return new Promise((resolve,resject) => {
+      fs.readFile(filepath, (error,content) => {
+        if(!error){
+          resolve(content);
+        } else {
+          reject(error);
+        }
+      })
+  })
+}
+
+function webServer(req,res){
+    let baseURI = url.parse(req.url);
+    let filepath = __dirname + (baseURI.pathname == '/' ? '/index.htm' : baseURI.pathname);
+    let contentType = mime[path.extname(filepath)];
+
+    fileAccess(filepath)
+      .then(fileReader)
+      .then(content => {
+        res.writeHead(200, { 'content-type' : contentType});
+        res.end(content,'utf-8');
+      })
+      .catch(error => {
+        res.writeHead(404);
+        res.end(JSON.stringify(error));
+      })
+}
+
+http.createServer(webServer).listen(3000, () => {
         console.log('Server up and running PORT 3000');
 })
