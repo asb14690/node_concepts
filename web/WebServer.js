@@ -26,7 +26,7 @@ function webServer(req,res){
                 if(!error){
                     console.log(filepath);
                     let contentType = mime[path.extname(filepath)];
-                    res.writeHead(200, { 'content-type':contentType});
+                    res.writeHead(200, { 'content-type' : contentType});
                     res.end(content,'utf-8');
                 }else{
                     console.log('er');
